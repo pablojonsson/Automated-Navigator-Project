@@ -45,21 +45,26 @@ void setup()
 
 void loop()
 {
+  //inititalize the distance variables
   long forwardDistance;
   long rightDistance;
   long leftDistance;
+  //start moving when the button is pressed
   if (digitalRead(start) == HIGH){
     startPress = true;
   }
+  //otherwise, do not move
   else {
     digitalWrite(en12, LOW);
     digitalWrite(en34, LOW);
   }
-  Serial.println(digitalRead(start));
+  //Serial.println(digitalRead(start));
   while(startPress) {
+    //after the start button has been pressed, calculate the distance from the car to the wall
   	forwardDistance = frontScan();
   	rightDistance = rightScan();
   	leftDistance = leftScan();
+    //move forward
     digitalWrite(en12, HIGH);
     digitalWrite(en34, HIGH);
     analogWrite(lFor, speed);
@@ -102,7 +107,7 @@ void turnLeft(int time)
   delay(time);
 }
 
-//checks to see if there is a wall close in front
+//checks distance from car to wall in front
 long frontScan()
 {
   long duration, inches;
@@ -116,7 +121,7 @@ long frontScan()
   return inches;
 }
 
-//checks to see if there is a wall close to the right
+//checks distance from car to wall to the right
 long rightScan()
 {
   long duration, inches;
@@ -130,7 +135,7 @@ long rightScan()
   return inches;
 }
 
-//checks to see if there is a wall close to the left
+//checks distance from car to wall to the left
 long leftScan()
 {
   long duration, inches;
