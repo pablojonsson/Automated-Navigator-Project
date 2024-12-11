@@ -1,15 +1,16 @@
+
 // C++ code
 //pin numbers
-const int en12 = 13;
-const int en34 = 12;
-const int lFor = 10;
-const int lBack = 11;
-const int rBack = 6;
-const int rFor = 9;
-const int leftTrig = 8;
-const int leftEcho = 7;
-const int frontTrig = 5;
-const int frontEcho = 4;
+const int en12 = 11;
+const int en34 = 6;
+const int lFor = 12;
+const int lBack = 13;
+const int rBack = 7;
+const int rFor = 8;
+const int leftTrig = 4;
+const int leftEcho = 5;
+const int frontTrig = 10;
+const int frontEcho = 9;
 const int rightTrig = 3;
 const int rightEcho = 2;
 const int start = A0;
@@ -17,14 +18,14 @@ const int reset = A5;
 bool startPress = false;
 
 int delayTime = 2000;
-int speed = 150;
+int speed = 255;
 int turnSpeed = 150;
-int turnTime = 2000;
-int turnThresh = 6;
+int turnThresh = 5;
 
 
 void setup()
 {
+  Serial.begin(9600);
   //pin assignments
   pinMode(en12, OUTPUT);
   pinMode(en34, OUTPUT);
@@ -40,12 +41,13 @@ void setup()
   pinMode(rightEcho, INPUT);
   pinMode(start, INPUT);
   pinMode(reset, INPUT);
-  Serial.begin(9600);
+  
 }
 
 void loop()
 {
   //inititalize the distance variables
+  Serial.println(0);
   long forwardDistance;
   long rightDistance;
   long leftDistance;
@@ -58,7 +60,6 @@ void loop()
     digitalWrite(en12, LOW);
     digitalWrite(en34, LOW);
   }
-  //Serial.println(digitalRead(start));
   while(startPress) {
     //after the start button has been pressed, calculate the distance from the car to the wall
   	forwardDistance = frontScan();
@@ -67,18 +68,38 @@ void loop()
     //move forward
     digitalWrite(en12, HIGH);
     digitalWrite(en34, HIGH);
-    analogWrite(lFor, speed);
+    
+    analogWrite(lFor, 255);
     analogWrite(lBack, 0);
-    analogWrite(rFor, .929*speed);
+    analogWrite(rFor, 130);
     analogWrite(rBack, 0);
-  	/*if (forwardDistance < turnThresh) {
+    
+    Serial.println("front");
+    Serial.println(forwardDistance);
+    Serial.println("right");
+    Serial.println(rightDistance);
+    Serial.println("left");
+    Serial.println(leftDistance);
+    if (rightDistance < turnThresh) {
+      Serial.println("turn left");
+      turnLeft();
+    }
+    if (leftDistance < turnThresh) {
+      Serial.println("turn right");
+      turnRight();
+    }
+    if (forwardDistance < turnThresh) {
     	if (rightDistance < leftDistance) {
-      		turnLeft(turnTime);
+          Serial.println("turn left");
+      		turnLeft();
+          
     	}
     	else {
-      		turnRight(turnTime);
+          Serial.println("turn right");
+      		turnRight();
+          
     	}
-  	}*/
+  	}
   }
   if (digitalRead(reset) == HIGH) {
     startPress = false;
@@ -86,25 +107,29 @@ void loop()
 }
 
 //turns the car right for duration time
-void turnRight(int time) 
+void turnRight() 
 {
-  analogWrite(lFor, 0);
-  analogWrite(lBack, turnSpeed);
-  analogWrite(lFor, turnSpeed);
-  analogWrite(lBack, 0);
+  while((frontScan()<turnThresh)||(leftScan()<turnThresh)) {
+    analogWrite(lFor, turnSpeed);
+    analogWrite(lBack, LOW);
+    analogWrite(rFor, LOW);
+    analogWrite(rBack,turnSpeed);
+  }
   
-  delay(time);
+  
 }
 
 //turns the car left for duration time
-void turnLeft(int time) 
+void turnLeft() 
 {
-  analogWrite(lFor, turnSpeed);
-  analogWrite(lBack, 0);
-  analogWrite(lFor, 0);
-  analogWrite(lBack, turnSpeed);
   
-  delay(time);
+  while((frontScan()<turnThresh)||(rightScan()<turnThresh)) {
+    analogWrite(lFor, LOW);
+    analogWrite(lBack, turnSpeed);
+    analogWrite(rFor, turnSpeed);
+    analogWrite(rBack, LOW);
+  }
+
 }
 
 //checks distance from car to wall in front
@@ -119,6 +144,7 @@ long frontScan()
   duration = pulseIn(frontEcho, HIGH);
   inches = duration / 74 / 2;
   return inches;
+  
 }
 
 //checks distance from car to wall to the right
@@ -133,6 +159,7 @@ long rightScan()
   duration = pulseIn(rightEcho, HIGH);
   inches = duration / 74 / 2;
   return inches;
+  Serial.println(inches);
 }
 
 //checks distance from car to wall to the left
